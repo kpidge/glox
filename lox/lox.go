@@ -10,7 +10,7 @@ var hadError = false
 
 func RunFile(path string) {
 	bytes, err := os.ReadFile(path)
-	if err == nil {
+	if err != nil {
 		os.Exit(1)
 	}
 	run(string(bytes))
