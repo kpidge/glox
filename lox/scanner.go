@@ -5,6 +5,25 @@ import (
 	"strconv"
 )
 
+var keywords = map[string]TokenType {
+	"and":    AND,
+	"class":  CLASS,
+	"else":   ELSE,
+	"false":  FALSE,
+	"for":    FOR,
+	"fun":    FUN,
+	"if":     IF,
+	"nil":    NIL,
+	"or":     OR,
+	"print":  PRINT,
+	"return": RETURN,
+	"super":  SUPER,
+	"this":   THIS,
+	"true":   TRUE,
+	"var":    VAR,
+	"while":  WHILE,
+}
+
 type Scanner struct {
 	Source string
 	tokens []Token
@@ -81,6 +100,8 @@ func (s *Scanner) scanToken() {
 		default: // This is checked here to save adding a case for each digit
 			if isDigit(c) {
 				s.number()
+			} else if isAlpha(c) {
+				s.identifier()
 			} else {
 				Error(s.line, "Unexpected character")
 			}
@@ -148,6 +169,17 @@ func (s *Scanner) number() {
 
 }
 
+func (s *Scanner) identifier() {
+	for isAlphaNumeric(s.peek()) { s.advance() }
+	text := s.Source[s.start:s.current]
+	tokenType, ok := keywords[text]
+	if ok {
+		s.addToken(tokenType)
+	} else {
+		s.addToken(IDENTIFIER)
+	}
+}
+
 func (s *Scanner) addToken(t TokenType) {
 	s.addTokenWithLiteral(t, nil)
 }
@@ -155,4 +187,16 @@ func (s *Scanner) addToken(t TokenType) {
 func (s *Scanner) addTokenWithLiteral(t TokenType, literal any) {
 	text := s.Source[s.start:s.current]
 	s.tokens = append(s.tokens, Token{Type: t, Lexeme: text, Literal: literal, Line: s.line})
+}
+
+func isDigit(c rune) bool {
+	return c >= '0' && c <= '9'
+}
+
+func isAlpha(c rune) bool {
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+}
+
+func isAlphaNumeric(c rune) bool {
+	return isAlpha(c) || isDigit(c)
 }
