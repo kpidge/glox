@@ -35,17 +35,29 @@ func RunPrompt() {
 func run(source string) {
 	scanner := NewScanner(source)
 	tokens := scanner.ScanTokens()
-	for _, t := range tokens {
-		fmt.Println(t)
-	}
+
+	parser := NewParser(tokens)
+	expr, err := parser.Parse()
+
+	if hadError || err != nil { panic("Error while parsing") }
+
+	astPrinter := ASTPrinter{}
+	astPrinter.PrintAST(expr)
 }
 
 func Error(line int, msg string) {
 	report(line, "", msg)
-	hadError = true
 }
 
 func report(line int, where string, msg string) {
 	fmt.Println(fmt.Sprint("[line ", line, "] Error", where, ": ", msg))
+	hadError = true
 }
 
+func ErrorOnToken(token Token, msg string) {
+	if token.Type == EOF {
+		report(token.Line, " at end", msg)
+	} else {
+		report(token.Line, " at '" + token.Lexeme + "'", msg)
+	}
+}
