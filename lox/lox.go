@@ -6,7 +6,9 @@ import (
 	"bufio"
 )
 
+var interpreter = Interpreter{}
 var hadError = false
+var hadRuntimeError = false
 
 func RunFile(path string) {
 	bytes, err := os.ReadFile(path)
@@ -16,6 +18,9 @@ func RunFile(path string) {
 	run(string(bytes))
 	if hadError {
 		os.Exit(65)
+	}
+	if hadRuntimeError {
+		os.Exit(70)
 	}
 }
 
@@ -41,17 +46,11 @@ func run(source string) {
 
 	if hadError || err != nil { panic("Error while parsing") }
 
-	astPrinter := ASTPrinter{}
-	astPrinter.PrintAST(expr)
+	interpreter.Interpret(expr)
 }
 
 func Error(line int, msg string) {
 	report(line, "", msg)
-}
-
-func report(line int, where string, msg string) {
-	fmt.Println(fmt.Sprint("[line ", line, "] Error", where, ": ", msg))
-	hadError = true
 }
 
 func ErrorOnToken(token Token, msg string) {
@@ -60,4 +59,15 @@ func ErrorOnToken(token Token, msg string) {
 	} else {
 		report(token.Line, " at '" + token.Lexeme + "'", msg)
 	}
+}
+
+func ReportRuntimeError(err RuntimeError) {
+	fmt.Println(err.msg)
+	fmt.Println("[" + fmt.Sprint(err.token.Line) + "]")
+	hadRuntimeError = true
+}
+
+func report(line int, where string, msg string) {
+	fmt.Println(fmt.Sprint("[line ", line, "] Error", where, ": ", msg))
+	hadError = true
 }
