@@ -1,9 +1,12 @@
 package lox
 
-
 type Parser struct {
 	tokens []Token
 	current int
+}
+
+func NewParser(tokens []Token) *Parser {
+	return &Parser{tokens: tokens, current: 0}
 }
 
 // Wrapper for parser errors
@@ -13,7 +16,7 @@ func (e parserError) Error() string {
 	return "Encountered error during parsing"
 }
 
-func (p *Parser) Parse() (expr Expr, err error) {
+func (p *Parser) Parse() (statements []Stmt, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			// Determine that we are recovering from a 
@@ -26,11 +29,32 @@ func (p *Parser) Parse() (expr Expr, err error) {
 		}
 
 	}()
-	return p.expression(), nil
+	statements = make([]Stmt, 0, 100)
+	for !p.isAtEnd() {
+		statements = append(statements, p.statement())
+	}
+	return statements, nil
 }
 
-func NewParser(tokens []Token) *Parser {
-	return &Parser{tokens: tokens, current: 0}
+func (p *Parser) statement() Stmt {
+	if p.match(PRINT) {
+		return p.printStatement()
+	}
+
+	// Fallthrough case, as difficult to detect based on token
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() Stmt {
+	expr := p.expression()
+	p.consume(SEMICOLON, "Expect ';' after value")
+	return &PrintStmt{Expr: expr}
+}
+
+func (p *Parser) expressionStatement() Stmt {
+	expr := p.expression()
+	p.consume(SEMICOLON, "Expect ';' after expression")
+	return &ExpressionStmt{Expr: expr}
 }
 
 func (p *Parser) expression() Expr {

@@ -51,3 +51,30 @@ func (g *Grouping) Accept(v ExprVisitor) {
 	v.visitGroupingExpr(g)
 }
 
+type Stmt interface {
+	Accept(StmtVisitor)
+}
+
+type StmtVisitor interface {
+	// Expression statement
+	visitExpressionStmt(*ExpressionStmt)
+
+	// Print statement
+	visitPrintStmt(*PrintStmt)
+}
+
+type ExpressionStmt struct {
+	Expr Expr
+}
+
+func (es *ExpressionStmt) Accept(v StmtVisitor) {
+	v.visitExpressionStmt(es)
+}
+
+type PrintStmt struct {
+	Expr Expr
+}
+
+func (ps *PrintStmt) Accept(v StmtVisitor) {
+	v.visitPrintStmt(ps)
+}

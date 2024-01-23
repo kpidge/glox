@@ -15,7 +15,7 @@ func (err RuntimeError) Error() string {
 	return err.msg
 }
 
-func (i *Interpreter) Interpret(expr Expr) {
+func (i *Interpreter) Interpret(statements []Stmt) {
 	defer func() {
 		if r := recover(); r != nil {
 			// Determine that we are recovering from a 
@@ -28,21 +28,32 @@ func (i *Interpreter) Interpret(expr Expr) {
 		}
 
 	}()
-	value := i.evaluate(expr)
-	fmt.Println(stringify(value))
+	for _, stmt := range statements {
+		i.execute(stmt)
+	}
 }
 
+func (i *Interpreter) execute(stmt Stmt) {
+	stmt.Accept(i)
+}
 
 func (i *Interpreter) evaluate(expr Expr) any {
 	expr.Accept(i)
 	return i.tmp
 }
+
+func (i *Interpreter) visitExpressionStmt(stmt *ExpressionStmt) {
+	i.evaluate(stmt.Expr)
+}
+
+func (i *Interpreter) visitPrintStmt(stmt *PrintStmt) {
+	value := i.evaluate(stmt.Expr)
+	fmt.Println(stringify(value))
+}
 	
 func (i *Interpreter) visitBinaryExpr(expr *Binary) {
 	left := i.evaluate(expr.Left)
 	right := i.evaluate(expr.Right)
-	fmt.Println(left)
-	fmt.Println(right)
 
 	switch expr.Op.Type {
 	case GREATER:

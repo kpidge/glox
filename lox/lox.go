@@ -42,11 +42,11 @@ func run(source string) {
 	tokens := scanner.ScanTokens()
 
 	parser := NewParser(tokens)
-	expr, err := parser.Parse()
+	statements, err := parser.Parse()
 
 	if hadError || err != nil { panic("Error while parsing") }
 
-	interpreter.Interpret(expr)
+	interpreter.Interpret(statements)
 }
 
 func Error(line int, msg string) {
