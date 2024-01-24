@@ -163,6 +163,24 @@ func(p *Parser) previous() Token {
 	return p.tokens[p.current - 1]
 }
 
+// Synchronise sorts out the state of the parser when recovering
+// from a parser error, by advancing to the next statement
+func (p *Parser) synchronise() {
+	p.advance()
+	for !p.isAtEnd() {
+		if p.previous().Type == SEMICOLON {
+			return
+		}
+
+		switch p.peek().Type {
+		case CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN:
+			return
+		}
+
+		p.advance()
+	}
+}
+
 func(p *Parser) parserError(token Token, msg string) error {
 	ErrorOnToken(token, msg)
 	return parserError{}
