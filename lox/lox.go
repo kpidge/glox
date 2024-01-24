@@ -62,8 +62,7 @@ func ErrorOnToken(token Token, msg string) {
 }
 
 func ReportRuntimeError(err RuntimeError) {
-	fmt.Println(err.msg)
-	fmt.Println("[" + fmt.Sprint(err.token.Line) + "]")
+	fmt.Println("[" + fmt.Sprint(err.token.Line) + "]", err.msg)
 	hadRuntimeError = true
 }
 

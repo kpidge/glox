@@ -11,6 +11,7 @@ type ExprVisitor interface {
 	visitLiteralExpr(*Literal)
 	visitGroupingExpr(*Grouping)
 	visitVariableExpr(*Variable)
+	visitAssignExpr(*Assign)
 }
 
 type Binary struct {
@@ -58,6 +59,15 @@ type Variable struct {
 
 func (va *Variable) Accept(v ExprVisitor) {
 	v.visitVariableExpr(va)
+}
+
+type Assign struct {
+	Name Token
+	Value Expr
+}
+
+func (a *Assign) Accept(v ExprVisitor) {
+	v.visitAssignExpr(a)
 }
 
 type Stmt interface {

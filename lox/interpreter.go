@@ -44,13 +44,20 @@ func (i *Interpreter) evaluate(expr Expr) any {
 	return i.tmp
 }
 
-// visitVarDecl implements StmtVisitor.
+// visitVarStmt implements StmtVisitor.
 func (i *Interpreter) visitVarStmt(stmt *VarStmt) {
 	var value any
 	if init := stmt.Initialiser; init != nil {
 		value = i.evaluate(init)
 	}
 	i.env.Define(stmt.Name.Lexeme, value)
+}
+
+// visitAssignExpr implements StmtVisitor.
+func (i *Interpreter) visitAssignExpr(expr *Assign) {
+	value := i.evaluate(expr.Value)
+	i.env.Assign(expr.Name, value)
+	i.tmp = value
 }
 
 func (i *Interpreter) visitExpressionStmt(stmt *ExpressionStmt) {

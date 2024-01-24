@@ -37,6 +37,10 @@ func (p *ASTPrinter) visitVariableExpr(v *Variable) {
 	p.result = p.parenthesise("var", v)
 }
 
+func (p *ASTPrinter) visitAssignExpr(a *Assign) {
+	p.result = p.parenthesise("assign", a)
+}
+
 func (p *ASTPrinter) parenthesise(name string, exprs ...Expr) string {
 	res := "(" + name
 	for _, e := range exprs {
