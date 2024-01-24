@@ -10,6 +10,7 @@ type ExprVisitor interface {
 	visitUnaryExpr(*Unary)
 	visitLiteralExpr(*Literal)
 	visitGroupingExpr(*Grouping)
+	visitVariableExpr(*Variable)
 }
 
 type Binary struct {
@@ -51,6 +52,14 @@ func (g *Grouping) Accept(v ExprVisitor) {
 	v.visitGroupingExpr(g)
 }
 
+type Variable struct {
+	Name Token
+}
+
+func (va *Variable) Accept(v ExprVisitor) {
+	v.visitVariableExpr(va)
+}
+
 type Stmt interface {
 	Accept(StmtVisitor)
 }
@@ -61,6 +70,9 @@ type StmtVisitor interface {
 
 	// Print statement
 	visitPrintStmt(*PrintStmt)
+
+	// Variable declaration statement
+	visitVarStmt(*VarStmt)
 }
 
 type ExpressionStmt struct {
@@ -77,4 +89,13 @@ type PrintStmt struct {
 
 func (ps *PrintStmt) Accept(v StmtVisitor) {
 	v.visitPrintStmt(ps)
+}
+
+type VarStmt struct {
+	Name Token
+	Initialiser Expr
+}
+
+func (vs *VarStmt) Accept(v StmtVisitor) {
+	v.visitVarStmt(vs)
 }

@@ -4,11 +4,13 @@ import "fmt"
 
 type Interpreter struct {
 	tmp any
+	env Environment
 }
 
+// TODO: Improve errors and error handling
 type RuntimeError struct {
 	token Token
-	msg string
+	msg   string
 }
 
 func (err RuntimeError) Error() string {
@@ -18,7 +20,7 @@ func (err RuntimeError) Error() string {
 func (i *Interpreter) Interpret(statements []Stmt) {
 	defer func() {
 		if r := recover(); r != nil {
-			// Determine that we are recovering from a 
+			// Determine that we are recovering from a
 			// runtimeError
 			if re, ok := r.(RuntimeError); ok {
 				ReportRuntimeError(re)
@@ -42,6 +44,15 @@ func (i *Interpreter) evaluate(expr Expr) any {
 	return i.tmp
 }
 
+// visitVarDecl implements StmtVisitor.
+func (i *Interpreter) visitVarStmt(stmt *VarStmt) {
+	var value any
+	if init := stmt.Initialiser; init != nil {
+		value = i.evaluate(init)
+	}
+	i.env.Define(stmt.Name.Lexeme, value)
+}
+
 func (i *Interpreter) visitExpressionStmt(stmt *ExpressionStmt) {
 	i.evaluate(stmt.Expr)
 }
@@ -50,14 +61,14 @@ func (i *Interpreter) visitPrintStmt(stmt *PrintStmt) {
 	value := i.evaluate(stmt.Expr)
 	fmt.Println(stringify(value))
 }
-	
+
 func (i *Interpreter) visitBinaryExpr(expr *Binary) {
 	left := i.evaluate(expr.Left)
 	right := i.evaluate(expr.Right)
 
 	switch expr.Op.Type {
 	case GREATER:
-		// Number literals are parsed as float64s 
+		// Number literals are parsed as float64s
 		// by the Scanner
 		checkNumberOperands(expr.Op, left, right)
 		i.tmp = left.(float64) > right.(float64)
@@ -80,14 +91,14 @@ func (i *Interpreter) visitBinaryExpr(expr *Binary) {
 		checkNumberOperands(expr.Op, left, right)
 		i.tmp = left.(float64) - right.(float64)
 	case PLUS:
-		l, okLeft := left.(float64)	
-		r, okRight := right.(float64)	
+		l, okLeft := left.(float64)
+		r, okRight := right.(float64)
 		if okLeft && okRight {
 			i.tmp = l + r
 			break
 		}
-		lStr, okLeft := left.(string)	
-		rStr, okRight := right.(string)	
+		lStr, okLeft := left.(string)
+		rStr, okRight := right.(string)
 		if okLeft && okRight {
 			i.tmp = lStr + rStr
 			break
@@ -127,9 +138,16 @@ func (i *Interpreter) visitUnaryExpr(expr *Unary) {
 	i.tmp = nil
 }
 
+// visitVariableExpr implements ExprVisitor.
+func (i *Interpreter) visitVariableExpr(v *Variable) {
+	i.tmp = i.env.Get(v.Name)
+}
+
 func (i *Interpreter) isTruthy(obj any) bool {
-	if obj == nil { return false }
-	
+	if obj == nil {
+		return false
+	}
+
 	if v, ok := obj.(bool); ok {
 		return v
 	}
@@ -137,10 +155,14 @@ func (i *Interpreter) isTruthy(obj any) bool {
 }
 
 func (i *Interpreter) isEqual(left any, right any) bool {
-	if left == nil && right == nil { return true }
-	if left == nil { return false }
+	if left == nil && right == nil {
+		return true
+	}
+	if left == nil {
+		return false
+	}
 
-	// What is the behaviour of this? Is it different from the 
+	// What is the behaviour of this? Is it different from the
 	// Java implementation?
 	// FIXME: can probably do away with the separate logic for nil above
 	return left == right
@@ -153,7 +175,6 @@ func checkNumberOperand(token Token, operand any) {
 		panic(err)
 	}
 }
-
 
 func checkNumberOperands(token Token, left any, right any) {
 	_, okLeft := left.(float64)

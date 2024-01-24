@@ -33,6 +33,10 @@ func (p *ASTPrinter) visitGroupingExpr(g *Grouping) {
 	p.result = p.parenthesise("group", g.Expr)
 }
 
+func (p *ASTPrinter) visitVariableExpr(v *Variable) {
+	p.result = p.parenthesise("var", v)
+}
+
 func (p *ASTPrinter) parenthesise(name string, exprs ...Expr) string {
 	res := "(" + name
 	for _, e := range exprs {

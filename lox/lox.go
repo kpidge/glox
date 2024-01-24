@@ -6,7 +6,7 @@ import (
 	"bufio"
 )
 
-var interpreter = Interpreter{}
+var interpreter = Interpreter{env: *NewEnvironment()}
 var hadError = false
 var hadRuntimeError = false
 

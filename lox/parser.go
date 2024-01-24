@@ -21,19 +21,39 @@ func (p *Parser) Parse() (statements []Stmt, err error) {
 		if r := recover(); r != nil {
 			// Determine that we are recovering from a 
 			// parserError
-			if pe, ok := r.(parserError); ok {
-				err = pe.error
+			if _, ok := r.(parserError); ok {
+				p.synchronise()
 			} else {
 				panic(r)
 			}
 		}
 
 	}()
+	// Default cap necessary?
 	statements = make([]Stmt, 0, 100)
 	for !p.isAtEnd() {
-		statements = append(statements, p.statement())
+		statements = append(statements, p.declaration())
 	}
 	return statements, nil
+}
+
+func (p *Parser) declaration() Stmt {
+	if p.match(VAR) {
+		return p.variableDecl()
+	}
+	return p.statement()
+}
+
+func (p *Parser) variableDecl() Stmt {
+	name := p.consume(IDENTIFIER, "Expect identifier after 'var' keyword")
+
+	var init Expr
+	if p.match(EQUAL) {
+		init = p.expression()
+	}
+	p.consume(SEMICOLON, "Expect ';' after variable declaration")
+
+	return &VarStmt{Name: name, Initialiser: init}
 }
 
 func (p *Parser) statement() Stmt {
@@ -116,6 +136,9 @@ func (p *Parser) primary() Expr {
 	if p.match(NIL) { return &Literal{Value: nil} }
 	if p.match(NUMBER, STRING) {
 		return &Literal{Value: p.previous().Literal}
+	}
+	if p.match(IDENTIFIER) {
+		return &Variable{Name: p.previous()}
 	}
 	if p.match(LEFT_PAREN) {
 		expr := p.expression()
