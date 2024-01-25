@@ -1,10 +1,12 @@
 package lox
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Interpreter struct {
 	tmp any
-	env Environment
+	env *Environment
 }
 
 // TODO: Improve errors and error handling
@@ -67,6 +69,23 @@ func (i *Interpreter) visitExpressionStmt(stmt *ExpressionStmt) {
 func (i *Interpreter) visitPrintStmt(stmt *PrintStmt) {
 	value := i.evaluate(stmt.Expr)
 	fmt.Println(stringify(value))
+}
+
+func (i *Interpreter) visitBlockStmt(stmt *BlockStmt) {
+	blockEnv := NewEnclosedEnv(i.env)
+	i.executeBlock(stmt.statements, blockEnv)
+}
+
+func (i *Interpreter) executeBlock(statements []Stmt, env *Environment) {
+	prev := i.env
+	defer func() {
+		// Reset state of interpreter
+		i.env = prev
+	}()
+	i.env = env
+	for _, statement := range statements {
+		i.execute(statement)
+	}
 }
 
 func (i *Interpreter) visitBinaryExpr(expr *Binary) {

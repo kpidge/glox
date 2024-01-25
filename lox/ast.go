@@ -83,6 +83,9 @@ type StmtVisitor interface {
 
 	// Variable declaration statement
 	visitVarStmt(*VarStmt)
+
+	// Block statement
+	visitBlockStmt(*BlockStmt)
 }
 
 type ExpressionStmt struct {
@@ -108,4 +111,12 @@ type VarStmt struct {
 
 func (vs *VarStmt) Accept(v StmtVisitor) {
 	v.visitVarStmt(vs)
+}
+
+type BlockStmt struct {
+	statements []Stmt
+}
+
+func (bs *BlockStmt) Accept(v StmtVisitor) {
+	v.visitBlockStmt(bs)
 }

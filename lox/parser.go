@@ -60,6 +60,9 @@ func (p *Parser) statement() Stmt {
 	if p.match(PRINT) {
 		return p.printStatement()
 	}
+	if p.match(LEFT_BRACE) {
+		return &BlockStmt{statements: p.block()}
+	}
 
 	// Fallthrough case, as difficult to detect based on token
 	return p.expressionStatement()
@@ -69,6 +72,15 @@ func (p *Parser) printStatement() Stmt {
 	expr := p.expression()
 	p.consume(SEMICOLON, "Expect ';' after value")
 	return &PrintStmt{Expr: expr}
+}
+
+func (p *Parser) block() []Stmt {
+	var statements []Stmt
+	for !p.check(RIGHT_BRACE) && !p.isAtEnd() {
+		statements = append(statements, p.declaration())
+	}
+	p.consume(RIGHT_BRACE, "Expect '}' after block")
+	return statements
 }
 
 func (p *Parser) expressionStatement() Stmt {
