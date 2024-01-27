@@ -76,6 +76,14 @@ func (i *Interpreter) visitBlockStmt(stmt *BlockStmt) {
 	i.executeBlock(stmt.statements, blockEnv)
 }
 
+func (i *Interpreter) visitIfStmt(stmt *IfStmt) {
+	if i.isTruthy(i.evaluate(stmt.expr)) {
+		i.execute(stmt.thenBranch)
+	} else if stmt.elseBranch != nil {
+		i.execute(stmt.elseBranch)
+	}
+}
+
 func (i *Interpreter) executeBlock(statements []Stmt, env *Environment) {
 	prev := i.env
 	defer func() {
@@ -142,6 +150,22 @@ func (i *Interpreter) visitBinaryExpr(expr *Binary) {
 	}
 }
 
+func (i *Interpreter) visitLogicalExpr(expr *Logical) {
+	left := i.evaluate(expr.left)
+	if expr.op.Type == OR {
+		if i.isTruthy(left) {
+			i.tmp = left 
+			return
+		}
+	} else {
+		if !i.isTruthy(left) {
+			i.tmp = left 
+			return
+		}
+	}
+	i.tmp = i.evaluate(expr.right)
+}
+
 func (i *Interpreter) visitLiteralExpr(expr *Literal) {
 	i.tmp = expr.Value
 }
@@ -174,8 +198,13 @@ func (i *Interpreter) isTruthy(obj any) bool {
 		return false
 	}
 
-	if v, ok := obj.(bool); ok {
-		return v
+	switch obj.(type) {
+	case float64:
+		return obj != float64(0)
+	case string:
+		return obj != ""
+	case bool:
+		return obj.(bool)
 	}
 	return true
 }

@@ -12,6 +12,7 @@ type ExprVisitor interface {
 	visitGroupingExpr(*Grouping)
 	visitVariableExpr(*Variable)
 	visitAssignExpr(*Assign)
+	visitLogicalExpr(*Logical)
 }
 
 type Binary struct {
@@ -70,6 +71,16 @@ func (a *Assign) Accept(v ExprVisitor) {
 	v.visitAssignExpr(a)
 }
 
+type Logical struct {
+	op Token
+	left Expr
+	right Expr
+}
+
+func (l *Logical) Accept(v ExprVisitor) {
+	v.visitLogicalExpr(l)
+}
+
 type Stmt interface {
 	Accept(StmtVisitor)
 }
@@ -86,6 +97,9 @@ type StmtVisitor interface {
 
 	// Block statement
 	visitBlockStmt(*BlockStmt)
+
+	// If statement
+	visitIfStmt(*IfStmt)
 }
 
 type ExpressionStmt struct {
@@ -119,4 +133,14 @@ type BlockStmt struct {
 
 func (bs *BlockStmt) Accept(v StmtVisitor) {
 	v.visitBlockStmt(bs)
+}
+
+type IfStmt struct {
+	expr Expr
+	thenBranch Stmt
+	elseBranch Stmt
+}
+
+func (is *IfStmt) Accept(v StmtVisitor) {
+	v.visitIfStmt(is)
 }

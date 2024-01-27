@@ -41,6 +41,10 @@ func (p *ASTPrinter) visitAssignExpr(a *Assign) {
 	p.result = p.parenthesise("assign", a)
 }
 
+func (p *ASTPrinter) visitLogicalExpr(l *Logical) {
+	p.result = p.parenthesise(l.op.Lexeme, l.left, l.right)
+}
+
 func (p *ASTPrinter) parenthesise(name string, exprs ...Expr) string {
 	res := "(" + name
 	for _, e := range exprs {
