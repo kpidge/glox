@@ -100,6 +100,9 @@ type StmtVisitor interface {
 
 	// If statement
 	visitIfStmt(*IfStmt)
+
+	// While statement
+	visitWhileStmt(*WhileStmt)
 }
 
 type ExpressionStmt struct {
@@ -143,4 +146,13 @@ type IfStmt struct {
 
 func (is *IfStmt) Accept(v StmtVisitor) {
 	v.visitIfStmt(is)
+}
+
+type WhileStmt struct {
+	expr Expr
+	body Stmt
+}
+
+func (ws *WhileStmt) Accept(v StmtVisitor) {
+	v.visitWhileStmt(ws)
 }

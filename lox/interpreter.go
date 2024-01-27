@@ -84,6 +84,12 @@ func (i *Interpreter) visitIfStmt(stmt *IfStmt) {
 	}
 }
 
+func (i *Interpreter) visitWhileStmt(stmt *WhileStmt) {
+	for i.isTruthy(i.evaluate(stmt.expr)) {
+		i.execute(stmt.body)
+	}
+}
+
 func (i *Interpreter) executeBlock(statements []Stmt, env *Environment) {
 	prev := i.env
 	defer func() {
