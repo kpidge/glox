@@ -9,6 +9,11 @@ type Interpreter struct {
 	env *Environment
 }
 
+type Callable interface {
+	call(*Interpreter, []any) any
+	arity() int
+}
+
 // TODO: Improve errors and error handling
 type RuntimeError struct {
 	token Token
@@ -99,6 +104,25 @@ func (i *Interpreter) executeBlock(statements []Stmt, env *Environment) {
 	i.env = env
 	for _, statement := range statements {
 		i.execute(statement)
+	}
+}
+
+func (i *Interpreter) visitCallExpr(expr *Call) {
+	callee := i.evaluate(expr.callee)
+
+	var args []any
+	for _, a := range expr.arguments {
+		args = append(args, i.evaluate(a))
+	}
+
+	if function, ok := callee.(Callable); !ok {
+		panic(RuntimeError{token: expr.paren, msg: "Not a callable expression"})
+	} else {
+		if len(args) != function.arity() {
+			msg := fmt.Sprintf("Expected %d argument but received %d", function.arity(), len(args))
+			panic(RuntimeError{token: expr.paren, msg: msg})
+		}
+		i.tmp = function.call(i, args)
 	}
 }
 

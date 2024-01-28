@@ -13,6 +13,7 @@ type ExprVisitor interface {
 	visitVariableExpr(*Variable)
 	visitAssignExpr(*Assign)
 	visitLogicalExpr(*Logical)
+	visitCallExpr(*Call)
 }
 
 type Binary struct {
@@ -79,6 +80,16 @@ type Logical struct {
 
 func (l *Logical) Accept(v ExprVisitor) {
 	v.visitLogicalExpr(l)
+}
+
+type Call struct {
+	paren Token
+	callee Expr
+	arguments []Expr
+}
+
+func (c *Call) Accept(v ExprVisitor) {
+	v.visitCalleeExpr(c)
 }
 
 type Stmt interface {
