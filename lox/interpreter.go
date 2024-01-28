@@ -6,7 +6,16 @@ import (
 
 type Interpreter struct {
 	tmp any
+	globals Environment
 	env *Environment
+}
+
+func NewInterpreter() *Interpreter {
+	var globals Environment
+	// globals.values["clock"] =
+
+	// Could have env enclose the global environment?
+	return &Interpreter{globals: globals, env: &globals}
 }
 
 type Callable interface {
@@ -124,6 +133,11 @@ func (i *Interpreter) visitCallExpr(expr *Call) {
 		}
 		i.tmp = function.call(i, args)
 	}
+}
+
+func (i *Interpreter) visitFunctionStmt(stmt *FunctionStmt) {
+	function := &LoxFunction{decl: stmt}
+	i.env.Define(stmt.name.Lexeme, function)
 }
 
 func (i *Interpreter) visitBinaryExpr(expr *Binary) {

@@ -89,7 +89,7 @@ type Call struct {
 }
 
 func (c *Call) Accept(v ExprVisitor) {
-	v.visitCalleeExpr(c)
+	v.visitCallExpr(c)
 }
 
 type Stmt interface {
@@ -114,6 +114,9 @@ type StmtVisitor interface {
 
 	// While statement
 	visitWhileStmt(*WhileStmt)
+
+	// Function declaration statement
+	visitFunctionStmt(*FunctionStmt)
 }
 
 type ExpressionStmt struct {
@@ -157,6 +160,16 @@ type IfStmt struct {
 
 func (is *IfStmt) Accept(v StmtVisitor) {
 	v.visitIfStmt(is)
+}
+
+type FunctionStmt struct {
+	name Token
+	params []Token
+	body []Stmt
+}
+
+func (fs *FunctionStmt) Accept(v StmtVisitor) {
+	v.visitFunctionStmt(fs)
 }
 
 type WhileStmt struct {

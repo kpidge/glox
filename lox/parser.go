@@ -38,13 +38,36 @@ func (p *Parser) Parse() (statements []Stmt, err error) {
 }
 
 func (p *Parser) declaration() Stmt {
+	if p.match(FUN) {
+		function := p.function("function")
+		return function
+	}
 	if p.match(VAR) {
 		return p.variableDecl()
 	}
 	return p.statement()
 }
 
-func (p *Parser) variableDecl() Stmt {
+func (p *Parser) function(kind string) *FunctionStmt{
+	name := p.consume(IDENTIFIER, "Expect " + kind + " name")
+	p.consume(LEFT_PAREN, "Expect '(' after " + kind + " name")
+	var params []Token
+	if !p.check(RIGHT_PAREN) {
+		params = append(params, p.consume(IDENTIFIER, "Expect parameter name"))
+		for p.match(COMMA) {
+			if len(params) >= 255 {
+				ErrorOnToken(p.peek(), "Can't have more than 255 parameters")
+			}
+			params = append(params, p.consume(IDENTIFIER, "Expect parameter name"))
+		}
+	}
+	p.consume(RIGHT_PAREN, "Expect ')' after parameters")
+	p.consume(LEFT_BRACE, "Expect '{' before " + kind + " body")
+	body := p.block()
+	return &FunctionStmt{name: name, params: params, body: body}
+}
+
+func (p *Parser) variableDecl() *VarStmt {
 	name := p.consume(IDENTIFIER, "Expect identifier after 'var' keyword")
 
 	var init Expr
@@ -245,7 +268,7 @@ func (p *Parser) call() Expr {
 	expr := p.primary()
 	for {
 		if p.match(LEFT_PAREN) {
-			p.finishCall(expr)
+			return p.finishCall(expr)
 		} else {
 			break
 		}
