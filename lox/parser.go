@@ -92,6 +92,9 @@ func (p *Parser) statement() Stmt {
 	if p.match(FOR) {
 		return p.forStatement()
 	}
+	if p.match(RETURN) {
+		return p.returnStatement()
+	}
 	if p.match(LEFT_BRACE) {
 		return &BlockStmt{statements: p.block()}
 	}
@@ -161,6 +164,16 @@ func (p *Parser) forStatement() Stmt {
 	}
 
 	return body
+}
+
+func (p *Parser) returnStatement() Stmt {
+	keyword := p.previous()
+	var value Expr
+	if !p.check(SEMICOLON) {
+		value = p.expression()
+	}
+	p.consume(SEMICOLON, "Expect ';' after return value")
+	return &ReturnStmt{keyword: keyword, value: value}
 }
 
 func (p *Parser) block() []Stmt {

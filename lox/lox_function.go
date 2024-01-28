@@ -5,11 +5,24 @@ type LoxFunction struct {
 }
 
 // call implements Callable
-func (f *LoxFunction) call(i *Interpreter, args []any) any {
+func (f *LoxFunction) call(i *Interpreter, args []any) (retval any) {
 	funcEnv := NewEnclosedEnv(i.env)
 	for i := 0; i < len(f.decl.params); i++ {
 		funcEnv.Define(f.decl.params[i].Lexeme, args[i])
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			// Recovering from return statement
+			// Exploit named return value
+			if ret, ok := r.(Return); ok {
+				retval = ret.value
+			} else {
+				panic(r)
+			}
+		}
+
+	}()
 	i.executeBlock(f.decl.body, funcEnv)
 	return nil
 }

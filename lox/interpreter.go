@@ -33,6 +33,16 @@ func (err RuntimeError) Error() string {
 	return err.msg
 }
 
+// Not actually an error - used for breaking out of e.g. functions 
+// with a 'return' statement
+type Return struct {
+	value any
+}
+
+func (ret Return) Error() string {
+	return stringify(ret.value)
+}
+
 func (i *Interpreter) Interpret(statements []Stmt) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -102,6 +112,14 @@ func (i *Interpreter) visitWhileStmt(stmt *WhileStmt) {
 	for i.isTruthy(i.evaluate(stmt.expr)) {
 		i.execute(stmt.body)
 	}
+}
+
+func (i *Interpreter) visitReturnStmt(stmt *ReturnStmt) {
+	var value any
+	if stmt.value != nil {
+		value = i.evaluate(stmt.value)
+	}
+	panic(Return{value: value})
 }
 
 func (i *Interpreter) executeBlock(statements []Stmt, env *Environment) {

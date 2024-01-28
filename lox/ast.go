@@ -117,6 +117,9 @@ type StmtVisitor interface {
 
 	// Function declaration statement
 	visitFunctionStmt(*FunctionStmt)
+
+	// Return statement
+	visitReturnStmt(*ReturnStmt)
 }
 
 type ExpressionStmt struct {
@@ -179,4 +182,13 @@ type WhileStmt struct {
 
 func (ws *WhileStmt) Accept(v StmtVisitor) {
 	v.visitWhileStmt(ws)
+}
+
+type ReturnStmt struct {
+	keyword Token
+	value Expr
+}
+
+func (rs *ReturnStmt) Accept(v StmtVisitor) {
+	v.visitReturnStmt(rs)
 }
