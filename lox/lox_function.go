@@ -2,11 +2,12 @@ package lox
 
 type LoxFunction struct {
 	decl *FunctionStmt
+	closure *Environment
 }
 
 // call implements Callable
 func (f *LoxFunction) call(i *Interpreter, args []any) (retval any) {
-	funcEnv := NewEnclosedEnv(i.env)
+	funcEnv := NewEnclosedEnv(f.closure)
 	for i := 0; i < len(f.decl.params); i++ {
 		funcEnv.Define(f.decl.params[i].Lexeme, args[i])
 	}

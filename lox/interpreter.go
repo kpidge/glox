@@ -154,7 +154,7 @@ func (i *Interpreter) visitCallExpr(expr *Call) {
 }
 
 func (i *Interpreter) visitFunctionStmt(stmt *FunctionStmt) {
-	function := &LoxFunction{decl: stmt}
+	function := &LoxFunction{decl: stmt, closure: i.env}
 	i.env.Define(stmt.name.Lexeme, function)
 }
 
